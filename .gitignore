@@ -1,0 +1,16 @@
+# Files and patterns to ignore.
+# Lines that start with '#' are comments.
+
+*.[oa]
+*.so
+*~
+\#*
+.#*
+tags
+TAGS
+
+# For the vi lovers
+*.swp
+
+*.d
+.depend
