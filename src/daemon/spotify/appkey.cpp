@@ -1,5 +1,5 @@
 /* *******************************************************************
-* File: common/appkey.cpp                              Part of spotd *
+* File: daemon/spotify/appkey.cpp                      Part of spotd *
 *                                                                    *
 * Copyright (C) 2011, Joachim Pileborg and individual contributors.  *
 * All rights reserved.                                               *
