@@ -1,2 +1,9 @@
-Clone and push test.
-Another clone and push test, now with pull request!
+The Spotify daemon is an application that runs in the background, and
+behaves just like the normal Spotify client, but without any user
+interface. Instead the daemon is controlled though a set of shell-scripts
+that wites and reads commands to and from a special connection. This way
+it will be easy to embed status-icons or controls in other programs. It
+will even be possible to write a completely new graphical user interface
+instead of the default.
+
+Well, that is the goal anyway. Now I just have to code this! :)
