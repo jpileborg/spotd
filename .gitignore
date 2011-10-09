@@ -14,3 +14,6 @@ TAGS
 
 *.d
 .depend
+
+test-spot/test-spot
+test-spot/tmp/
