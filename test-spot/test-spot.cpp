@@ -332,6 +332,22 @@ namespace search
 
         void print_album(sp_album *album)
         {
+            std::cout << "Album \"" << sp_album_name(album) << "\"\n";
+            std::cout << "    Year     : " << sp_album_year(album) << "\n";
+            std::cout << "    Available: " << (sp_album_is_available(album) ? "yes" : "no") << "\n";
+            // std::cout << "    Cover ID : " << sp_album_cover(album) << "\n";
+
+            sp_artist *artist = sp_album_artist(album);
+            std::cout << "    Artist   : " << sp_artist_name(artist) << "\n";
+
+            const char *album_types[] = {
+                "Album",
+                "Single",
+                "Compilation",
+                "Unknown"
+            };
+
+            std::cout << "    Type     : " << album_types[sp_album_type(album)] << "\n";
         }
 
         void search_complete(sp_search *search, void *)
@@ -376,6 +392,11 @@ namespace search
         sp_search_create(session::session, query, 0, 5, 0, 0, 0, 0, search_complete, nullptr);
     }
 
+    void search_album(const char *query)
+    {
+        sp_search_create(session::session, query, 0, 0, 0, 5, 0, 0, search_complete, nullptr);
+    }
+
 
     /* ************************************************************ */
 
@@ -392,13 +413,14 @@ namespace search
         if (!search_track_done)
         {
             search_track_done = true;
-            search_track("track:\"Doctor! Doctor!\"");
+            search_track("track:\"Doctor! Doctor!\" artist:\"Thompson Twins\"");
             return;
         }
 
         if (!search_album_done)
         {
             search_album_done = true;
+            search_album("album:\"Dopes to Infinity\" artist:\"Monster Magnet\"");
             return;
         }
 
