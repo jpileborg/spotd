@@ -1,0 +1,49 @@
+This file is used by me as a kind of one-man brainstorming session.
+
+
+
+Namespaces
+----------
+
+namespace spotd;
+// The top-level namespace for all code in the daemon
+
+namespace spotd::spotify;
+// Contains the interface-classes for the libspotify API
+
+namespace spotd::spotify::appkey;
+// Contains the application key used by libspotify
+
+namespace spotd::audio;
+// Classes and functions for handling audio
+
+namespace spotd::audio::output;
+// Code for the actual audio output (alsa, pulse, etc.)
+
+namespace spotd::config;
+// Code for handling compile-time and run-time configuration
+// Also code for parsing command-line arguments (which I consider to
+// be part of the run-time configuration) and configuration files
+
+
+
+Classes
+-------
+
+class spotd::spotify::Session;
+// libspotify session handling
+
+class spotd::spotify::Artist;
+// Wrapper around sp_artist
+
+class spotd::spotify::Track;
+// Wrapper around sp_track
+
+class spotd::spotify::Album;
+// Wrapper around sp_album
+
+
+Audio output
+------------
+I will start be making output-handlers for ALSA. Pulse, JACK and other
+systems (esd maybe) will be done when needed.
