@@ -25,6 +25,14 @@ namespace spotd::config;
 // Also code for parsing command-line arguments (which I consider to
 // be part of the run-time configuration) and configuration files
 
+namespace spotd::???;
+// Classes and function for handling the external API
+// It is the responsibility of these functions to turn the results and
+// status returned from spotd::spotify::* into something that will be
+// simple to parse by other applications
+
+
+The code for most of the namespaces will be in separate source directories.
 
 
 Classes
@@ -42,8 +50,117 @@ class spotd::spotify::Track;
 class spotd::spotify::Album;
 // Wrapper around sp_album
 
+class spotd::spotify::Playlist;
+// Wrapper around sp_playlist
+
+class spotd::spotify::Search;
+// Wrapper around sp_search
+// Returned by the spotd::spotify::search*() functions
+
+class spotd::spotify::User;
+// Wrapper around sp_user
+
+
+
+class spotd::audio::output::Output;
+// Virtual base-class for audio output
+
+class spotd::audio::output::OutputAlsa;
+// Output using ALSA
+
+
 
 Audio output
 ------------
 I will start be making output-handlers for ALSA. Pulse, JACK and other
-systems (esd maybe) will be done when needed.
+systems (esd and OSS maybe?) will be done when needed.
+
+
+
+Threads
+-------
+Communication with the Spotify services (though libspotify) will be
+handled in a separate thread. A second thread will handle the audio
+output. A third thread the external communication. And the fourth
+(and main) thread is started by running the daemon and will control
+all other threads.
+
+Also, like most programs intended to run in the background, there
+will be a special daemon-mode that will fork the program in a standard
+way used by baemons, so for a while there will actually be five threads.
+
+
+
+General thoughts
+----------------
+When starting playing a track from an album or a playlist, prefetch the
+next track from the album or playlist to try and prevent gaps in the audio.
+
+
+
+Source and style
+----------------
+Source and header files will be divided into directories, one namespace
+per directory in most cases (spotd::spotify::appkey will be an exception.)
+Anonymous namespaces are allowed in and even encouraged in source files,
+for functions and classes that are internal to that source file.
+
+There should be only one class per header-/source-file.
+
+Source files containing only functions should group related functions in
+a single source file. E.g. there will be a number of search-function in
+the spotd::spotify namespace (search(), search_track(), search_album()
+etc.), all these functions will be placed in a single source file with
+no other unrelated source files there.
+
+
+
+Tabs are saved as spaces, and all tabs are 4 spaces.
+
+Opening and closing braces on their own lines. No need for braces around
+one-line statements. But if the statement spans multiple lines, even when
+just a single function call, it must be inside braces.
+
+Opening braces when initializing an array or a struct can be on the same
+line as the definition. The closing brace should be on its own line.
+
+In a do-while statement, the opening brace should be on a separate line,
+but the closing brace should be on the same line as the while.
+
+Switch-statements should always have a default clause.
+
+No GCC specific extensions used in the source, it must be pure C++11.
+
+One space between statement keywords (like if and for) and their paranthesis.
+No space efter opening paranthesis or before closing paranthesis.
+
+Comments should use the C++ //.
+
+In expression lists separated by comma, one space after a comma and the
+next expression (e.g 1, 2, 3).
+
+It is ok to return from anywhere inside a function.
+
+Class names use camel case. Function, variable and namespace names use
+all lower-case with '_' between words.
+
+Member variables in classes must be prefixed with 'm_'.
+
+The number of statements or expressions inside a try-clause should be as
+small as possible, preferably just a single statement or expression.
+
+Similarily, try to be brief inside an exception clause.
+
+Variable names should be descriptive, but not overly verbose. Short single
+letter names are allowed for things like loops [for (int i =...].
+
+If a variable should not be changed, make it a constant.
+
+References are prefered before pointers.
+
+Deallocations should be made in reverse order of allocation.
+
+Use only a small set of Boost libraries, and only when the functionality
+is not already in C++11.
+
+Boost libraries to use: Program options, Signals2
