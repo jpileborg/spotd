@@ -302,14 +302,20 @@ namespace search
 
             std::cout << "Track \"" << sp_track_name(track) << "\"\n";
 
-            std::cout << "    Starred   : "
+            std::cout << "    Starred    : "
                       << (sp_track_is_starred(session::session, track) ? "yes" : "no") << "\n";
-            std::cout << "    Duration  : " << (duration / 60000) << ":"
+            std::cout << "    Duration   : " << (duration / 60000) << ":"
                       << std::setfill('0') << std::setw(2) << ((duration / 1000) / 60) << "\n";
-            std::cout << "    Artists   : " << sp_track_num_artists(track) << "\n";
-            std::cout << "    Popularity: " << sp_track_popularity(track) << "\n";
+            std::cout << "    Artists    : " << sp_track_num_artists(track) << "\n";
+            std::cout << "    Popularity : " << sp_track_popularity(track) << "\n";
 
-            std::cout << "    Artists   :\n";
+            sp_link *link = sp_link_create_from_track(track, 0);
+            char url[256];
+            sp_link_as_string(link, url, sizeof(url) - 1);
+            sp_link_release(link);
+            std::cout << "    Spotify URL: " << url << "\n";
+
+            std::cout << "    Artists    :\n";
             std::cout << std::setfill(' ');
             for (int i = 0; i < sp_track_num_artists(track); i++)
             {
