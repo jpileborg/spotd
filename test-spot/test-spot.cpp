@@ -38,8 +38,16 @@
 // This program is my attempt to learn the libspotify API, and how to
 // use it to search for and play music.
 
-// Song to play: Doctor Doctor, by Thompson Twins
+// Song to play: Doctor! Doctor!, by Thompson Twins
+//     (spotify:track:0P412IP7uGemFJNx3ccPAB)
+//
+// Album to play: Dopes to Infinity, by Monster Magnet
+//
 // Playlist to play: Pilens 90-tal
+//
+// Artist to search for: Bob Hund
+//
+// Also do general searching, and this is where I should start.
 
 /* **************************************************************** */
 
@@ -109,6 +117,7 @@ namespace session
     std::unique_lock<std::mutex> notify_lock(notify_mutex);
     std::condition_variable notify_cond;
     bool notify_events = false;
+    bool is_logged_in = false;
 
     /* ************************************************************ */
 
@@ -134,11 +143,14 @@ namespace session
 
             int cc = sp_session_user_country(session);
             std::cout << "    country: " << char(cc >> 8) << char(cc & 0x0ff)
-                      << " (" << std::setw(2) << std::setfill('0') << std::hex << cc << ")\n";
+                      << " (" << std::setw(2) << std::setfill('0') << std::hex << cc << std::dec << ")\n";
+
+            is_logged_in = true;
         }
 
         void logged_out(sp_session *session)
         {
+            is_logged_in = false;
             std::cout << "logged out\n";
             keep_running = false;
         }
@@ -193,7 +205,7 @@ namespace session
 
             int cc = sp_session_user_country(session);
             std::cout << "    country: " << char(cc >> 8) << char(cc & 0x0ff)
-                      << " (" << std::setw(2) << std::setfill('0') << std::hex << cc << ")\n";
+                      << " (" << std::setw(2) << std::setfill('0') << std::hex << cc << std::dec << ")\n";
         }
 
 
@@ -254,7 +266,7 @@ namespace session
                       << sp_error_message(error) << "\n";
             return false;
         }
-        std::cout << "        session = " << std::setw(8) << std::setfill('0') << std::hex << s << "\n";
+        std::cout << "        session = " << std::setw(8) << std::setfill('0') << std::hex << s << std::dec << "\n";
 
         std::cout << "    logging in\n";
         std::cout << "        username = \"" << username << "\"\n";
@@ -279,6 +291,124 @@ namespace session
 }
 
 /* **************************************************************** */
+
+namespace search
+{
+    namespace
+    {
+        void print_track(sp_track *track)
+        {
+            int duration = sp_track_duration(track);
+
+            std::cout << "Track \"" << sp_track_name(track) << "\"\n";
+
+            std::cout << "    Starred   : "
+                      << (sp_track_is_starred(session::session, track) ? "yes" : "no") << "\n";
+            std::cout << "    Duration  : " << (duration / 60000) << ":"
+                      << std::setfill('0') << std::setw(2) << ((duration / 1000) / 60) << "\n";
+            std::cout << "    Artists   : " << sp_track_num_artists(track) << "\n";
+            std::cout << "    Popularity: " << sp_track_popularity(track) << "\n";
+
+            std::cout << "    Artists   :\n";
+            std::cout << std::setfill(' ');
+            for (int i = 0; i < sp_track_num_artists(track); i++)
+            {
+                sp_artist *artist = sp_track_artist(track, i);
+
+                std::cout << "        " << std::setw(2) << (i + 1) << ": "
+                          << sp_artist_name(artist) << "\n";
+            }
+        }
+
+        void print_artist(sp_artist *artist)
+        {
+        }
+
+        void print_album(sp_album *album)
+        {
+        }
+
+        void search_complete(sp_search *search, void *)
+        {
+            if (sp_search_error(search) != SP_ERROR_OK)
+            {
+                std::cout << "search error: "
+                          << sp_error_message(sp_search_error(search)) << "\n";
+            }
+            else
+            {
+                std::cout << "\n";
+                std::cout << "Search results\n--------------\n";
+                std::cout << "Query       : " << sp_search_query(search) << "\n";
+                std::cout << "Did you mean: " << sp_search_did_you_mean(search) << "\n";
+                std::cout << "Tracks      : " << sp_search_num_tracks(search)
+                          << "/" << sp_search_total_tracks(search) << "\n";
+                std::cout << "Artists     : " << sp_search_num_artists(search)
+                          << "/" << sp_search_total_artists(search) << "\n";
+                std::cout << "Albums      : " << sp_search_num_albums(search)
+                          << "/" << sp_search_total_albums(search) << "\n";
+                std::cout << "\n";
+
+                for (int i = 0; i < sp_search_num_tracks(search); i++)
+                    print_track(sp_search_track(search, i));
+
+                for (int i = 0; i < sp_search_num_artists(search); i++)
+                    print_artist(sp_search_artist(search, i));
+
+                for (int i = 0; i < sp_search_num_albums(search); i++)
+                    print_album(sp_search_album(search, i));
+            }
+
+            sp_search_release(search);
+        }
+    }
+
+    /* ************************************************************ */
+
+    void search_track(const char *query)
+    {
+        sp_search_create(session::session, query, 0, 5, 0, 0, 0, 0, search_complete, nullptr);
+    }
+
+
+    /* ************************************************************ */
+
+    namespace
+    {
+        bool search_track_done = false;
+        bool search_album_done = false;
+        bool search_artist_done = false;
+        bool search_playlist_done = false;
+    }
+
+    void test_search()
+    {
+        if (!search_track_done)
+        {
+            search_track_done = true;
+            search_track("track:\"Doctor! Doctor!\"");
+            return;
+        }
+
+        if (!search_album_done)
+        {
+            search_album_done = true;
+            return;
+        }
+
+        if (!search_artist_done)
+        {
+            search_artist_done = true;
+            return;
+        }
+
+        if (!search_playlist_done)
+        {
+            search_playlist_done = true;
+            return;
+        }
+    }
+}
 
 /* **************************************************************** */
 
@@ -359,7 +489,9 @@ int main(int argc, char *argv[])
             }
         }
 
-        // std::cout << "main: unlock notification mutex\n";
+        if (session::is_logged_in)
+            search::test_search();
+
         session::notify_events = false;
         session::notify_mutex.unlock();
 
@@ -368,7 +500,6 @@ int main(int argc, char *argv[])
             sp_session_process_events(session::session, &next_timeout);
         } while (next_timeout == 0);
 
-        // std::cout << "main: lock notification mutex\n";
         session::notify_mutex.lock();
     }
 
