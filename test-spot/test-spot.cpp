@@ -556,7 +556,7 @@ int main(int argc, char *argv[])
         do
         {
             sp_session_process_events(session::session, &next_timeout);
-        } while (next_timeout == 0);
+        } while (keep_running && next_timeout == 0);
 
         session::notify_mutex.lock();
     }
