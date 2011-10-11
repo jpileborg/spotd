@@ -328,6 +328,10 @@ namespace search
             std::cout << "    Artists    : " << sp_track_num_artists(track) << "\n";
             std::cout << "    Popularity : " << sp_track_popularity(track) << "\n";
 
+            sp_album *album = sp_track_album(track);
+            if (album != nullptr)
+                std::cout << "    Album      : " << sp_album_name(album) << "\n";
+
             sp_link *link = sp_link_create_from_track(track, 0);
             char url[256];
             sp_link_as_string(link, url, sizeof(url) - 1);
