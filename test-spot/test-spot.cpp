@@ -53,21 +53,19 @@
 
 #include <iostream>
 #include <iomanip>
-
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-
-#include <signal.h>
-
-#include <libspotify/api.h>
-
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
-
 #include <exception>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <signal.h>
+
+#include <libspotify/api.h>
+
+#include "alsa.h"
 
 /* **************************************************************** */
 
@@ -179,6 +177,11 @@ namespace session
             notify_mutex.unlock();
         }
 
+        int music_delivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames)
+        {
+            return num_frames;
+        }
+
 
 
         void log_message(sp_session *session, const char *data)
@@ -224,7 +227,7 @@ namespace session
             connection_error,       // connection_error
             message_to_user,        // message_to_user
             notify_main_thread,     // notify_main_thread
-            nullptr,                // music_delivery
+            music_delivery,         // music_delivery
             nullptr,                // play_token_lost
             log_message,            // log_message
             nullptr,                // end_of_track
