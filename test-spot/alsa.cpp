@@ -38,7 +38,14 @@
 // The purpose of this file is to play the audio PCM data received from
 // libspotify. This is done with the help of ALSA.
 
+#include <iostream>
+#include <queue>
+#include <mutex>
+#include <thread>
+#include <cstring>
+
 #include <asoundlib.h>
+#include <libspotify/api.h>
 
 /* **************************************************************** */
 
@@ -46,19 +53,107 @@ namespace alsa
 {
     namespace
     {
+        snd_pcm_t *handle = 0;
+
+        struct sample_data
+        {
+            int   samples;     // number of samples in the data
+            char  frames[0];   // the PCM data
+        };
+
+        std::queue<sample_data *> sample_queue;
+
+        std::mutex sample_queue_mutex;
+        std::unique_lock<std::mutex> sample_queue_lock(sample_queue_mutex);
+
         /* ******************************************************** */
+
+        // TODO: Player thread
+
+        /*
+                frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
+                if (frames < 0)
+                        frames = snd_pcm_recover(handle, frames, 0);
+                if (frames < 0) {
+                        printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
+                        break;
+                }
+                if (frames > 0 && frames < (long)sizeof(buffer))
+                        printf("Short write (expected %li, wrote %li)\n", (long)sizeof(buffer), frames);
+        */
     }
 
     bool open(const char *device /* = "default" */)
     {
+        // int error = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, SND_PCM_ASYNC);
+        int error = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0);
+        if (error < 0)
+        {
+            std::cout << "Error opening ALSA device: " << snd_strerror(error) << "\n";
+            return false;
+        }
+
+        sample_queue_lock.unlock();
+
         return true;
     }
 
     void close()
     {
+        if (handle != 0)
+        {
+            snd_pcm_close(handle);
+            handle = 0;
+        }
+    }
+
+    bool set_parameters(const sp_sampletype sample_type, const int sample_rate, const int channels)
+    {
+        snd_pcm_format_t format;
+
+        switch (sample_type)
+        {
+        case SP_SAMPLETYPE_INT16_NATIVE_ENDIAN:
+            format = SND_PCM_FORMAT_S16;
+            break;
+
+        default:
+            std::cout << "Error setting parameters: unknown sample type " << sample_type << "\n";
+            return false;
+        }
+
+        int error = snd_pcm_set_params(handle, format,
+                                       SND_PCM_ACCESS_RW_INTERLEAVED,
+                                       channels,
+                                       sample_rate,
+                                       1,
+                                       500000);   // 0.5sec overal latency
+        if (error < 0)
+        {
+            std::cout << "Error setting parameters: " << snd_strerror(error) << "\n";
+            return false;
+        }
+
+        return true;
     }
 
     /* ************************************************************ */
+
+    bool queue_samples(const void *frames, const int samples)
+    {
+        // samples * 2 because each sample is 2 bytes (16 bits)
+        sample_data *s = reinterpret_cast<sample_data *>(new char [sizeof(struct sample_data) + (samples * 2)]);
+        std::memcpy(s->frames, frames, samples * 2);
+        s->samples = samples;
+
+        if (!sample_queue_lock.try_lock())
+            return false;
+
+        sample_queue.push(s);
+        sample_queue_lock.unlock();
+
+        return true;
+    }
 
     /* ************************************************************ */
 
