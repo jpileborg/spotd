@@ -1,12 +1,16 @@
 ######################################################################
 
 PROGRAM = test-spot
-SOURCES = test-spot.cpp
-HEADERS =
+SOURCES = test-spot.cpp alsa.cpp
+HEADERS = alsa.h
 
 SPOTIFY_CXXFLAGS = $(shell pkg-config --cflags libspotify)
 SPOTIFY_LDFLAGS  = $(shell pkg-config --libs-only-L libspotify) $(shell pkg-config --libs-only-other libspotify)
 SPOTIFY_LIBS     = $(shell pkg-config --libs-only-l libspotify)
+
+ALSA_CXXFLAGS    = $(shell pkg-config --cflags alsa)
+ALSA_LDFLAGS     = $(shell pkg-config --libs-only-L alsa) $(shell pkg-config --libs-only-other alsa)
+ALSA_LIBS        = $(shell pkg-config --libs-only-l alsa)
 
 ######################################################################
 
@@ -14,9 +18,9 @@ CXXFLAGS  = -Wall -Wextra -Weffc++ -std=c++0x -ggdb3 -pipe
 LDFLAGS   = -ggdb3 -pipe
 LIBS      =
 
-CXXFLAGS += $(SPOTIFY_CXXFLAGS)
-LDFLAGS  += $(SPOTIFY_LDFLAGS)
-LIBS     += $(SPOTIFY_LIBS)
+CXXFLAGS += $(SPOTIFY_CXXFLAGS) $(ALSA_CXXFLAGS)
+LDFLAGS  += $(SPOTIFY_LDFLAGS) $(ALSA_LDFLAGS)
+LIBS     += $(SPOTIFY_LIBS) $(ALSA_LIBS)
 
 CXX       = g++
 LD        = g++
