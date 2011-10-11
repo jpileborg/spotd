@@ -432,7 +432,7 @@ namespace search
         if (!search_track_done)
         {
             search_track_done = true;
-            search_track("track:\"Doctor! Doctor!\" artist:\"Thompson Twins\"");
+            search_track("track:\"Doctor! Doctor!\" artist:\"Thompson Twins\" album:\"Into The Gap\"");
             return;
         }
 
