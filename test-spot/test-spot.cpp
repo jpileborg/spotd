@@ -116,6 +116,7 @@ namespace session
     std::condition_variable notify_cond;
     bool notify_events = false;
     bool is_logged_in = false;
+    bool player_is_configured = false;
 
     /* ************************************************************ */
 
@@ -168,18 +169,29 @@ namespace session
 
         void notify_main_thread(sp_session *session)
         {
-            // std::cout << "notify main thread\n";
-            // std::cout << "notify: lock notification mutex\n";
             notify_mutex.lock();
             notify_events = true;
             notify_cond.notify_all();
-            // std::cout << "notify: unlock notification mutex\n";
             notify_mutex.unlock();
         }
 
         int music_delivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames)
         {
-            return num_frames;
+            if (!player_is_configured)
+            {
+                std::cout << "setting audio parameters:\n";
+                std::cout << "    sample type: " << format->sample_type << "\n";
+                std::cout << "    sample rate: " << format->sample_rate << "\n";
+                std::cout << "    channels   : " << format->channels << "\n";
+
+                if (alsa::set_parameters(format->sample_type, format->sample_rate, format->channels))
+                    player_is_configured = true;
+            }
+
+            if (alsa::queue_samples(frames, num_frames))
+                return num_frames;
+            else
+                return 0;
         }
 
 
@@ -484,13 +496,20 @@ int main(int argc, char *argv[])
     std::cout << "main: unlock notification mutex\n";
     session::notify_mutex.unlock();
 
-    if (!session::create(argv[1], argv[2]))
+    if (!alsa::open())
         return 2;
+
+    if (!session::create(argv[1], argv[2]))
+    {
+        alsa::close();
+        return 3;
+    }
 
     if (!posix::init())
     {
         session::destroy();
-        return 3;
+        alsa::close();
+        return 4;
     }
 
     keep_running = true;
@@ -541,6 +560,7 @@ int main(int argc, char *argv[])
 
     posix::clean();
     session::destroy();
+    alsa::close();
 
     std::cout << "all done, exiting\n";
 }
