@@ -57,21 +57,17 @@
 
 #include <iostream>
 #include <iomanip>
-
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-
-#include <signal.h>
-
-#include <libspotify/api.h>
-
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
-
 #include <exception>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <signal.h>
+
+#include <libspotify/api.h>
 
 /* **************************************************************** */
 
