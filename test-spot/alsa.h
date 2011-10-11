@@ -39,6 +39,9 @@
 
 namespace alsa
 {
+    bool open(const char *device = "default");
+    void close();
+
     // TODO: Add functions to play sounds!
 }
 
