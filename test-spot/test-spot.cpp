@@ -38,6 +38,10 @@
 // This program is my attempt to learn the libspotify API, and how to
 // use it to search for and play music.
 
+// BIG IMPORTANT NOTE: This code needs a compiler capable of the new
+// C++11 standard! It also needs a standard library updated most of
+// the latest stuff from the C++11 standard.
+
 // Song to play: Doctor! Doctor!, by Thompson Twins
 //     (spotify:track:0P412IP7uGemFJNx3ccPAB)
 //
