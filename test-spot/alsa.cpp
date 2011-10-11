@@ -66,21 +66,45 @@ namespace alsa
         std::mutex sample_queue_mutex;
         std::unique_lock<std::mutex> sample_queue_lock(sample_queue_mutex);
 
+        std::thread player_thread;
+
+        bool kill_player_thread = false;
+
         /* ******************************************************** */
 
-        // TODO: Player thread
+        void player()
+        {
+            while (!kill_player_thread)
+            {
+                if (!sample_queue.empty())
+                {
+                    sample_data *s;
 
-        /*
-                frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
-                if (frames < 0)
+                    if (sample_queue_lock.try_lock())
+                    {
+                        s = sample_queue.front();
+                        sample_queue.pop();
+                        sample_queue_lock.unlock();
+                    }
+
+                    // Play the sample data
+                    // s->samples * 2 because one sample is two bytes
+                    int frames = snd_pcm_writei(handle, s->frames, s->samples * 2);
+
+                    if (frames < 0)
                         frames = snd_pcm_recover(handle, frames, 0);
-                if (frames < 0) {
-                        printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                        break;
+                    if (frames < 0)
+                        std::cout << "Error playing sample: " << snd_strerror(frames) << "\n";
+
+                    if (frames > 0 && frames < (s->samples * 2))
+                    {
+                        std::cout << "Error playing sample: short write\n";
+                        std::cout << "    Expected " << (s->samples * 2)
+                                  << " bytes, wrote " << frames << " bytes\n";
+                    }
                 }
-                if (frames > 0 && frames < (long)sizeof(buffer))
-                        printf("Short write (expected %li, wrote %li)\n", (long)sizeof(buffer), frames);
-        */
+            }
+        }
     }
 
     bool open(const char *device /* = "default" */)
@@ -93,6 +117,8 @@ namespace alsa
             return false;
         }
 
+        player_thread = std::thread(player);
+
         sample_queue_lock.unlock();
 
         return true;
@@ -100,6 +126,9 @@ namespace alsa
 
     void close()
     {
+        kill_player_thread = true;
+        player_thread.join();
+
         if (handle != 0)
         {
             snd_pcm_close(handle);
