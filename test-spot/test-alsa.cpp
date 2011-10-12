@@ -82,6 +82,8 @@ namespace posix
 
 int main()
 {
+    signed short *data;
+
     if (!posix::init())
         return 1;
 
@@ -93,9 +95,17 @@ int main()
 
     // TODO: Create buffer with sine-wave audio data
 
+    if (!alsa::set_parameters(SP_SAMPLETYPE_INT16_NATIVE_ENDIAN, 4000, 1))
+    {
+        alsa::close();
+        posix::clean();
+        return 3;
+    }
+
     while (keep_running)
     {
         // TODO: Do stuff!
+        // bool queue_samples(const void *frames, const int samples)
     }
 
     alsa::close();
