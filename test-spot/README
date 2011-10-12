@@ -1,0 +1,7 @@
+This directory contains a small test-program that I (Joachim Pileborg)
+use to test libspotify and its API. It is written in C++ and utilises
+the brand new C++11 standard. That means it needs at least version 4.5
+of the GCC C++ compiler, and is in fact developed using version 4.6.
+
+This test-program also is a test of using the ALSA API to actually play
+the tracks we receive from libspotify.
