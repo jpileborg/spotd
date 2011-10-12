@@ -30,6 +30,10 @@ LD        = g++
 test_spot_OBJECTS = $(test_spot_SOURCES:%.cpp=%.o)
 test_alsa_OBJECTS = $(test_alsa_SOURCES:%.cpp=%.o)
 
+SOURCES = $(test_spot_SOURCES) $(test_alsa_SOURCES)
+HEADERS = $(test_spot_HEADERS) $(test_alsa_HEADERS)
+OBJECTS = $(test_spot_OBJECTS) $(test_alsa_OBJECTS)
+
 ######################################################################
 
 .PHONY: default
@@ -96,5 +100,8 @@ clean: someclean
 .PHONY: realclean
 realclean: clean
 	-rm -f $(PROGRAMS)
+
+tags: $(SOURCES) $(HEADERS)
+	ctags $(SOURCES) $(HEADERS)
 
 ######################################################################
