@@ -16,4 +16,5 @@ TAGS
 .depend
 
 test-spot/test-spot
+test-spot/test-alsa
 test-spot/tmp/
