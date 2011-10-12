@@ -35,16 +35,71 @@
 *                                                                    *
 ******************************************************************* */
 
+#include <iostream>
+#include <iomanip>
+#include <signal.h>
+
+#include <libspotify/api.h>
+
+#include "alsa.h"
+
 /* **************************************************************** */
+
+namespace
+{
+    bool keep_running = false;
+}
 
 /* **************************************************************** */
 
 /* **************************************************************** */
+
+namespace posix
+{
+    void handle_sig_hup(int)
+    {
+        keep_running = false;
+    }
+
+    /* ************************************************************ */
+
+    bool init()
+    {
+        signal(SIGHUP , handle_sig_hup);
+        signal(SIGINT , handle_sig_hup);
+        signal(SIGTERM, handle_sig_hup);
+        signal(SIGQUIT, handle_sig_hup);
+
+        return true;
+    }
+
+    void clean()
+    {
+    }
+}
 
 /* **************************************************************** */
 
 int main()
 {
+    if (!posix::init())
+        return 1;
+
+    if (!alsa::open())
+    {
+        posix::clean();
+        return 2;
+    }
+
+    // TODO: Create buffer with sine-wave audio data
+
+    while (keep_running)
+    {
+        // TODO: Do stuff!
+    }
+
+    alsa::close();
+    posix::clean();
 }
 
 /* **************************************************************** */
