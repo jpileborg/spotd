@@ -35,19 +35,27 @@
 *                                                                    *
 ******************************************************************* */
 
+#define _GLIBCXX_USE_NANOSLEEP
+
 #include <iostream>
 #include <iomanip>
+#include <thread>
+#include <chrono>
+#include <exception>
+#include <cmath>
 #include <signal.h>
 
 #include <libspotify/api.h>
 
 #include "alsa.h"
 
+namespace this_thread = std::this_thread;
+
 /* **************************************************************** */
 
 namespace
 {
-    bool keep_running = false;
+    bool keep_running = true;
 }
 
 /* **************************************************************** */
@@ -82,31 +90,53 @@ namespace posix
 
 int main()
 {
-    signed short *data;
+    std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
 
+    std::cout << "_POSIX_C_SOURCE = " << _POSIX_C_SOURCE << "\n";
+
+    signed short data[8000];
+
+    std::cout << "calling posix::init()\n";
     if (!posix::init())
+    {
+        std::cout << "posix::init() failed\n";
         return 1;
+    }
 
+    std::cout << "calling alsa::open()\n";
     if (!alsa::open())
     {
+        std::cout << "alsa::open() failed\n";
         posix::clean();
         return 2;
     }
 
-    // TODO: Create buffer with sine-wave audio data
+    std::cout << "creating data\n";
+    double step = (2 * M_PI) / (4000 / 1000);
+    double rad  = 0;
+    for (int i = 0; i < 8000; i++)
+    {
+        // data[i] = static_cast<signed short>(std::sin(rad) * 32767);
+        data[i] = static_cast<signed short>(std::sin(rad) * 5000);
+        rad += step;
+    }
 
+    std::cout << "calling alsa::set_parameters()\n";
     if (!alsa::set_parameters(SP_SAMPLETYPE_INT16_NATIVE_ENDIAN, 4000, 1))
     {
+        std::cout << "alsa::set_parameters() failed\n";
         alsa::close();
         posix::clean();
         return 3;
     }
 
+    std::cout << "entering main loop\n";
     while (keep_running)
     {
-        // TODO: Do stuff!
-        // bool queue_samples(const void *frames, const int samples)
+        alsa::queue_samples(data, 8000);
+        this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
+    std::cout << "main loop done\n";
 
     alsa::close();
     posix::clean();

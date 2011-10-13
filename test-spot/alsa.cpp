@@ -78,31 +78,49 @@ namespace alsa
             {
                 if (!sample_queue.empty())
                 {
-                    sample_data *s;
+                    std::cout << "have data to play\n";
 
                     if (sample_queue_lock.try_lock())
                     {
-                        s = sample_queue.front();
+                        sample_data *s = sample_queue.front();
                         sample_queue.pop();
                         sample_queue_lock.unlock();
-                    }
 
-                    // Play the sample data
-                    // s->samples * 2 because one sample is two bytes
-                    int frames = snd_pcm_writei(handle, s->frames, s->samples * 2);
+                        std::cout << "popped data\n";
 
-                    if (frames < 0)
-                        frames = snd_pcm_recover(handle, frames, 0);
-                    if (frames < 0)
-                        std::cout << "Error playing sample: " << snd_strerror(frames) << "\n";
+                        if (s != 0)
+                        {
+                            std::cout << "about to play data\n";
 
-                    if (frames > 0 && frames < (s->samples * 2))
-                    {
-                        std::cout << "Error playing sample: short write\n";
-                        std::cout << "    Expected " << (s->samples * 2)
-                                  << " bytes, wrote " << frames << " bytes\n";
+                            // Play the sample data
+                            // s->samples * 2 because one sample is two bytes
+                            int frames = snd_pcm_writei(handle, s->frames, s->samples * 2);
+
+                            if (frames < 0)
+                                frames = snd_pcm_recover(handle, frames, 0);
+                            if (frames < 0)
+                                std::cout << "Error playing sample: " << snd_strerror(frames) << "\n";
+
+                            if (frames > 0 && frames < (s->samples * 2))
+                            {
+                                std::cout << "Error playing sample: short write\n";
+                                std::cout << "    Expected " << (s->samples * 2)
+                                          << " bytes, wrote " << frames << " bytes\n";
+                            }
+
+                            delete [] reinterpret_cast<char *>(s);
+                        }
                     }
                 }
+            }
+
+            // Empty the queue
+            sample_queue_lock.lock();
+            while (!sample_queue.empty())
+            {
+                if (sample_data *s = sample_queue.front())
+                    delete [] reinterpret_cast<char *>(s);
+                sample_queue.pop();
             }
         }
     }
