@@ -151,7 +151,7 @@ namespace session
             is_logged_in = true;
         }
 
-        void logged_out(sp_session *session)
+        void logged_out(sp_session *)
         {
             is_logged_in = false;
             std::cout << "logged out\n";
@@ -160,18 +160,18 @@ namespace session
 
 
 
-        void connection_error(sp_session *session, sp_error error)
+        void connection_error(sp_session *, sp_error error)
         {
             std::cout << "connection error: " << sp_error_message(error) << "\n";
         }
 
 
-        void message_to_user(sp_session *session, const char *message)
+        void message_to_user(sp_session *, const char *message)
         {
             std::cout << "message: " << message << std::endl;
         }
 
-        void notify_main_thread(sp_session *session)
+        void notify_main_thread(sp_session *)
         {
             notify_mutex.lock();
             notify_events = true;
@@ -179,7 +179,7 @@ namespace session
             notify_mutex.unlock();
         }
 
-        int music_delivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames)
+        int music_delivery(sp_session *, const sp_audioformat *format, const void *frames, int num_frames)
         {
             if (!player_is_configured)
             {
@@ -200,7 +200,7 @@ namespace session
 
 
 
-        void log_message(sp_session *session, const char *data)
+        void log_message(sp_session *, const char *data)
         {
             std::cout << "log: " << data;
         }
@@ -229,7 +229,7 @@ namespace session
 
 
 
-        void offline_status_updated(sp_session *session)
+        void offline_status_updated(sp_session *)
         {
             std::cout << "offline status updated\n";
         }
@@ -351,6 +351,7 @@ namespace search
 
         void print_artist(sp_artist *artist)
         {
+            std::cout << "Artist \"" << sp_artist_name(artist) << "\"\n";
         }
 
         void print_album(sp_album *album)
@@ -370,7 +371,8 @@ namespace search
                 "Unknown"
             };
 
-            std::cout << "    Type     : " << album_types[sp_album_type(album)] << "\n";
+            std::cout << "    Type     : " << album_types[sp_album_type(album)]
+                      << " (" << int(sp_album_type(album)) << ")\n";
         }
 
         void search_complete(sp_search *search, void *)
@@ -420,6 +422,11 @@ namespace search
         sp_search_create(session::session, query, 0, 0, 0, 5, 0, 0, search_complete, nullptr);
     }
 
+    void search_artist(const char *query)
+    {
+        sp_search_create(session::session, query, 0, 0, 0, 0, 0, 5, search_complete, nullptr);
+    }
+
 
     /* ************************************************************ */
 
@@ -450,6 +457,7 @@ namespace search
         if (!search_artist_done)
         {
             search_artist_done = true;
+            search_album("artist:\"Bob Hund\"");
             return;
         }
 
